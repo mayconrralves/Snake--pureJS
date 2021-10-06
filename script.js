@@ -1,24 +1,18 @@
 let lastTime = 0;
+let lastDirection = '';
 const speed = 1;
-let position = 2;
 const nextPosition =  {
     x: 100,
     y: 350,
     direction: 'ArrowRight',
 }
-const lengthSquare = 20;
-const step = lengthSquare;
+const step = 20;
+
 const bodySnake = [
     { ...nextPosition }, 
     { ...nextPosition, x:nextPosition.x-20 }, 
     {...nextPosition, x:nextPosition.x-40 },
     { ...nextPosition, x:nextPosition.x-60 },
-    /* { ...nextPosition, x:nextPosition.x-80 },
-    { ...nextPosition, x:nextPosition.x-100 },
-    { ...nextPosition, x:nextPosition.x-120 },
-    { ...nextPosition, x:nextPosition.x-140 },
-    { ...nextPosition, x:nextPosition.x-160 },
-    { ...nextPosition, x:nextPosition.x-180 }, */
 ]
 function draw() {
     const game = document.getElementById('game');
@@ -45,6 +39,7 @@ function updateSnake(){
         }
         bodySnake[i].direction = bodySnake[i-1].direction;
     }
+    lastDirection = bodySnake[0].direction;
     bodySnake[0] = nextPosition;
 }
 
@@ -76,11 +71,22 @@ function del(){
 
 function action(){
     document.addEventListener('keyup', e=>{
-        if(e.code === 'ArrowLeft' && nextPosition.direction === 'ArrowRight') return;
-        if(e.code === 'ArrowRight' && nextPosition.direction === 'ArrowLeft') return;
-        if(e.code === 'ArrowUp' && nextPosition.direction === 'ArrowDown') return;
-        if(e.code === 'ArrowDown' && nextPosition.direction === 'ArrowUp') return;
-        nextPosition.direction = e.code;
+        if( e.code === 'ArrowLeft' ||
+            e.code === 'ArrowUp' ||
+            e.code === 'ArrowRight' ||
+            e.code === 'ArrowDown'
+        ){
+            if(e.code === 'ArrowLeft' && nextPosition.direction === 'ArrowRight') return;
+            if(e.code === 'ArrowRight' && nextPosition.direction === 'ArrowLeft') return;
+            if(e.code === 'ArrowUp' && nextPosition.direction === 'ArrowDown') return;
+            if(e.code === 'ArrowDown' && nextPosition.direction === 'ArrowUp') return;
+            if(e.code === 'ArrowLeft' && lastDirection === 'ArrowRight') return;
+            if(e.code === 'ArrowRight' && lastDirection === 'ArrowLeft') return;
+            if(e.code === 'ArrowUp' && lastDirection === 'ArrowDown') return;
+            if(e.code === 'ArrowDown' && lastDirection === 'ArrowUp') return;
+
+            nextPosition.direction = e.code;
+        }
     });     
 }
 
