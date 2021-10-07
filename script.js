@@ -1,23 +1,23 @@
 let lastTime = 0;
 let lastDirection = '';
-const speed = 5;
+const speed = 4;
 let food = null;
 const minX = 50;
 const maxX = 950;
 const minY = 50;
 const maxY = 530;
-const nextPosition =  {
+const beginPosition = {
     x: 50,
     y: 50,
     direction: 'ArrowRight',
 }
+let nextPosition =  {
+   ...beginPosition
+}
 const step = 20;
 let count = 0;
-const bodySnake = [
-    { ...nextPosition }, 
-    /* { ...nextPosition, x:nextPosition.x-20 }, 
-    {...nextPosition, x:nextPosition.x-40 },
-    { ...nextPosition, x:nextPosition.x-60 }, */
+let bodySnake = [
+    beginPosition, 
 ]
 
 function getRandomInt(min, max) {
@@ -26,9 +26,14 @@ function getRandomInt(min, max) {
 }
 
   function createFood(){
-      const x = getRandomInt(minX, maxX);
-      const y = getRandomInt(minY, maxY);
       if(!food){
+          const x = getRandomInt(minX, maxX);
+          const y = getRandomInt(minY, maxY);
+          for(let i=0; i< bodySnake.length;i++){
+              if(bodySnake[i].x === x && bodySnake[i].y === y){
+                  return;
+              }
+          }
           food = {x,y};
       }
   }
@@ -65,7 +70,38 @@ function eatFoodBySnake(){
         foodImg.parentElement.removeChild(foodImg);
     }
 }
+
+function del(){ 
+    const game = document.getElementById('game');
+    for(let i = 0; i < bodySnake.length;i++ ){
+      const img = document.getElementById(i);
+      if(img) img.parentNode.removeChild(img);
+    }   
+}
+function reset(){
+    del();
+    nextPosition = {...beginPosition };
+    bodySnake = [
+        beginPosition
+    ]
+}
+
+function verifyLimits() {
+    if(
+         nextPosition.y === minY-step ||
+         nextPosition.y === maxY+step || 
+         nextPosition.x === minX-step || 
+         nextPosition.x === maxX 
+    ){
+        reset();
+    }
+}
 function updateSnake(){
+    for(let i= 4; i< bodySnake.length;i++){
+        if(nextPosition.x === bodySnake[i].x && nextPosition.y === bodySnake[i].y){
+            reset();
+        }
+    }
     for(let i = bodySnake.length-1; i > 0; i-- ){
         switch(bodySnake[i].direction){
             case 'ArrowLeft':
@@ -81,35 +117,29 @@ function updateSnake(){
     }
     lastDirection = bodySnake[0].direction;
     bodySnake[0] = nextPosition;
+    
 }
 
 function updatePosition(){
-
- switch(nextPosition.direction){
-     case 'ArrowRight':
-         nextPosition.x += step;
-         break;
-     case 'ArrowDown': 
-        nextPosition.y += step;
-         break;
-     case 'ArrowLeft': 
-        nextPosition.x -= step;
-         break;
-     case 'ArrowUp':
-        nextPosition.y -= step;
-        break;
-     }
+    switch(nextPosition.direction){
+        case 'ArrowRight':
+            nextPosition.x += step;
+            break;
+        case 'ArrowDown': 
+            nextPosition.y += step;
+            break;
+        case 'ArrowLeft': 
+            nextPosition.x -= step;
+            break;
+        case 'ArrowUp':
+                nextPosition.y -= step;
+                break;
+    }
+    verifyLimits();
 }
-
-function del(){ 
-    const game = document.getElementById('game');
-    for(let i = 0; i < bodySnake.length;i++ ){
-      const img = document.getElementById(i);
-      if(img) img.parentNode.removeChild(img);
-    }   
-}
-
-function action(){
+        
+        
+        function action(){
     document.addEventListener('keyup', e=>{
         if( e.code === 'ArrowLeft' ||
             e.code === 'ArrowUp' ||
