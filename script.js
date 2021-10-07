@@ -1,19 +1,37 @@
 let lastTime = 0;
 let lastDirection = '';
-const speed = 1;
+const speed = 5;
+let food = null;
+const minX = 50;
+const maxX = 950;
+const minY = 50;
+const maxY = 530;
 const nextPosition =  {
-    x: 100,
-    y: 350,
+    x: 50,
+    y: 50,
     direction: 'ArrowRight',
 }
 const step = 20;
-
+let count = 0;
 const bodySnake = [
     { ...nextPosition }, 
-    { ...nextPosition, x:nextPosition.x-20 }, 
+    /* { ...nextPosition, x:nextPosition.x-20 }, 
     {...nextPosition, x:nextPosition.x-40 },
-    { ...nextPosition, x:nextPosition.x-60 },
+    { ...nextPosition, x:nextPosition.x-60 }, */
 ]
+
+function getRandomInt(min, max) {
+    const between = (max-min)/step;
+    return min+Math.floor(Math.random()*between)*step;
+}
+
+  function createFood(){
+      const x = getRandomInt(minX, maxX);
+      const y = getRandomInt(minY, maxY);
+      if(!food){
+          food = {x,y};
+      }
+  }
 function draw() {
     const game = document.getElementById('game');
     bodySnake.forEach((piece,i)=>{
@@ -24,6 +42,28 @@ function draw() {
         img.style.top = piece.y;
         game.appendChild(img);
     });
+    if(!food){
+        createFood();
+        const foodImg = document.createElement('img');
+        foodImg.setAttribute('src','square.png');
+        foodImg.setAttribute('id','food');
+        foodImg.style.left = food.x;
+        foodImg.style.top = food.y;
+        game.appendChild(foodImg);
+    }
+}
+function eatFoodBySnake(){
+    if(!food) return;
+    if(bodySnake[0].x === food.x && bodySnake[0].y === food.y){
+        food = null;
+        const segment = {
+            ...bodySnake[bodySnake.length-1],
+        }
+        bodySnake.push(segment);
+        const game = document.getElementById('game');
+        const foodImg = document.getElementById('food');
+        foodImg.parentElement.removeChild(foodImg);
+    }
 }
 function updateSnake(){
     for(let i = bodySnake.length-1; i > 0; i-- ){
@@ -64,9 +104,9 @@ function updatePosition(){
 function del(){ 
     const game = document.getElementById('game');
     for(let i = 0; i < bodySnake.length;i++ ){
-      if(game.lastChild) game.removeChild(game.lastChild);
-    }
-    
+      const img = document.getElementById(i);
+      if(img) img.parentNode.removeChild(img);
+    }   
 }
 
 function action(){
@@ -95,8 +135,8 @@ function main (currentTime){
     const second = (currentTime - lastTime)/1000;
     if(second < 1/speed) return;
     updateSnake();
-    updatePosition()
-    
+    updatePosition();
+    eatFoodBySnake();
     del();
     draw();
     lastTime=currentTime;
