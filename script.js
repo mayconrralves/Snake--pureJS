@@ -2,30 +2,39 @@ let lastTime = 0;
 let lastDirection = '';
 const speed = 4;
 let food = null;
-const minX = 50;
-const maxX = 950;
-const minY = 50;
-const maxY = 530;
+const step = 20;
+const X = 30;
+const Y = 20;
+const minX = 0;
+const maxX = X*step;
+const minY = 0;
+const maxY = Y*step;
 const beginPosition = {
-    x: 50,
-    y: 50,
+    x: 0,
+    y: 0,
     direction: 'ArrowRight',
 }
 let nextPosition =  {
    ...beginPosition
 }
-const step = 20;
-let count = 0;
 let bodySnake = [
     beginPosition, 
-]
+];
+
+function configure(){
+    const game = document.getElementById('game');
+    game.style.width = maxX;
+    game.style.height = maxY;
+    game.style.top = `${window.screen.height-window.screen.height+100}px`;
+    game.style.left = '25%';
+}
 
 function getRandomInt(min, max) {
     const between = (max-min)/step;
     return min+Math.floor(Math.random()*between)*step;
 }
 
-  function createFood(){
+function createFood(){
       if(!food){
           const x = getRandomInt(minX, maxX);
           const y = getRandomInt(minY, maxY);
@@ -67,7 +76,7 @@ function eatFoodBySnake(){
         bodySnake.push(segment);
         const game = document.getElementById('game');
         const foodImg = document.getElementById('food');
-        foodImg.parentElement.removeChild(foodImg);
+        foodImg.remove();
     }
 }
 
@@ -75,7 +84,7 @@ function del(){
     const game = document.getElementById('game');
     for(let i = 0; i < bodySnake.length;i++ ){
       const img = document.getElementById(i);
-      if(img) img.parentNode.removeChild(img);
+      if(img) img.remove();
     }   
 }
 function reset(){
@@ -83,13 +92,13 @@ function reset(){
     nextPosition = {...beginPosition };
     bodySnake = [
         beginPosition
-    ]
+    ];
 }
 
 function verifyLimits() {
     if(
          nextPosition.y === minY-step ||
-         nextPosition.y === maxY+step || 
+         nextPosition.y === maxY || 
          nextPosition.x === minX-step || 
          nextPosition.x === maxX 
     ){
@@ -139,7 +148,7 @@ function updatePosition(){
 }
         
         
-        function action(){
+function action(){
     document.addEventListener('keyup', e=>{
         if( e.code === 'ArrowLeft' ||
             e.code === 'ArrowUp' ||
@@ -171,5 +180,6 @@ function main (currentTime){
     draw();
     lastTime=currentTime;
 }
+configure();
 action();
 window.requestAnimationFrame(main);
