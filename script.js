@@ -20,7 +20,16 @@ let nextPosition =  {
 let bodySnake = [
     beginPosition, 
 ];
-
+function menuClick(){
+    const menu = document.getElementById('menu');
+    document.addEventListener('click',()=>{
+        if(!menu.lastChild.style.display){
+            menu.lastChild.style.display = 'flex';
+        }else {
+            menu.lastChild.style.display = '';
+        }
+    });
+}
 function configure(){
     const game = document.getElementById('game');
     game.style.width = maxX;
@@ -182,4 +191,5 @@ function main (currentTime){
 }
 configure();
 action();
+menuClick();
 window.requestAnimationFrame(main);
