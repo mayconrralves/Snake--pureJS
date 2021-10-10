@@ -1,6 +1,8 @@
 let lastTime = 0;
 let lastDirection = '';
 const speed = 4;
+let score = 0;
+let pause = false;
 let food = null;
 const step = 20;
 const X = 30;
@@ -13,26 +15,29 @@ const beginPosition = {
     x: 0,
     y: 0,
     direction: 'ArrowRight',
-}
+};
+
 let nextPosition =  {
    ...beginPosition
-}
+};
+
 let bodySnake = [
     beginPosition, 
 ];
-function menuClick(){
-    const menu = document.getElementById('menu');
-    document.addEventListener('click',()=>{
-        if(!menu.lastChild.style.display){
-            menu.lastChild.style.display = 'flex';
-        }else {
-            menu.lastChild.style.display = '';
-        }
-    });
+
+function calcScore(value=10){
+    const scoreItem = document.getElementById('score');
+    score+=value;
+    scoreItem.lastChild.textContent = score;
 }
+
+function resetScore(){
+    score = 0;
+}
+
 function configure(){
     const game = document.getElementById('game');
-    game.style.width = maxX;
+    game.style.width = maxX+2;
     game.style.height = maxY;
     game.style.top = `${window.screen.height-window.screen.height+100}px`;
     game.style.left = '25%';
@@ -44,17 +49,18 @@ function getRandomInt(min, max) {
 }
 
 function createFood(){
-      if(!food){
-          const x = getRandomInt(minX, maxX);
-          const y = getRandomInt(minY, maxY);
-          for(let i=0; i< bodySnake.length;i++){
-              if(bodySnake[i].x === x && bodySnake[i].y === y){
-                  return;
-              }
-          }
-          food = {x,y};
-      }
-  }
+    if(!food){
+        const x = getRandomInt(minX, maxX);
+        const y = getRandomInt(minY, maxY);
+        for(let i=0; i< bodySnake.length;i++){
+            if(bodySnake[i].x === x && bodySnake[i].y === y){
+                return;
+            }
+        }
+        food = {x,y};
+    }
+}
+
 function draw() {
     const game = document.getElementById('game');
     bodySnake.forEach((piece,i)=>{
@@ -75,6 +81,7 @@ function draw() {
         game.appendChild(foodImg);
     }
 }
+
 function eatFoodBySnake(){
     if(!food) return;
     if(bodySnake[0].x === food.x && bodySnake[0].y === food.y){
@@ -86,22 +93,32 @@ function eatFoodBySnake(){
         const game = document.getElementById('game');
         const foodImg = document.getElementById('food');
         foodImg.remove();
+        calcScore(100);
     }
 }
 
 function del(){ 
-    const game = document.getElementById('game');
     for(let i = 0; i < bodySnake.length;i++ ){
       const img = document.getElementById(i);
       if(img) img.remove();
     }   
 }
+
 function reset(){
     del();
     nextPosition = {...beginPosition };
     bodySnake = [
         beginPosition
     ];
+    resetScore();
+    pause = false;
+}
+function endGame(){
+    const finalScore = document.getElementById('final-score');
+    finalScore.textContent = score;  
+    const modal = document.getElementById('modal');
+    modal.style.display='flex';
+    pause= true;
 }
 
 function verifyLimits() {
@@ -111,13 +128,14 @@ function verifyLimits() {
          nextPosition.x === minX-step || 
          nextPosition.x === maxX 
     ){
-        reset();
+        endGame();
     }
 }
+
 function updateSnake(){
     for(let i= 4; i< bodySnake.length;i++){
         if(nextPosition.x === bodySnake[i].x && nextPosition.y === bodySnake[i].y){
-            reset();
+            endGame();
         }
     }
     for(let i = bodySnake.length-1; i > 0; i-- ){
@@ -153,6 +171,7 @@ function updatePosition(){
                 nextPosition.y -= step;
                 break;
     }
+    calcScore();
     verifyLimits();
 }
         
@@ -177,13 +196,32 @@ function action(){
         }
     });     
 }
+function eventClick(){
+    document.addEventListener('click',(e)=>{
+        if(e.target.id === 'reset') reset();
+        else if(e.target.id === 'pause') pause=true;
+        else if(e.target.id === 'start') pause=false;
+        else if(e.target.id === 'button') {
+            reset();
+            const modal = document.getElementById('modal');
+            modal.style.display = 'none';
+            pause = false;
+        }
+        const menu = document.getElementById('menu');
+        if(e.target.id === 'title' && !menu.lastChild.style.display){
+            menu.lastChild.style.display = 'flex';
+        }else {
+            menu.lastChild.style.display = '';
+        }
+    });
+}
 
 function main (currentTime){
     window.requestAnimationFrame(main);
     const second = (currentTime - lastTime)/1000;
     if(second < 1/speed) return;
-    updateSnake();
-    updatePosition();
+    !pause && updateSnake();
+    !pause && updatePosition();
     eatFoodBySnake();
     del();
     draw();
@@ -191,5 +229,5 @@ function main (currentTime){
 }
 configure();
 action();
-menuClick();
+eventClick();
 window.requestAnimationFrame(main);

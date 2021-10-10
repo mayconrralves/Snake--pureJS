@@ -6,22 +6,29 @@
     </head>
     <body>
         <header>
-            <div class="score">Score: <span></span></div>
             <div id='menu'>
-                <h1 id="title">Snake</h1>
+                <h1 id="title">Snake Game</h1>
                 <nav id="options">
                     <ul>
-                        <li>Start</li>
-                        <li>Pause</li>
-                        <li>Restart</li>
-                        <li>Help</li>
+                        <li id='start'>Start</li>
+                        <li id='pause'>Pause</li>
+                        <li id='reset'>Reset</li>
+                        <li id='help' >Help</li>
                     </ul>
                     
                 </div>
             </nav>
+            <div id="score">Score: <span></span></div>
         </header>
         <main id='game'>
         </main>
+        <div id='modal'>
+            <div id="contain">
+                <p> Você perdeu!</p>
+                <p>Score <span id='final-score'></span></p>
+                <button id='button'>Jogar de Novo</button>
+            </div>
+        </div>
         <script src='script.js'></script>
     </body>
 </html>
