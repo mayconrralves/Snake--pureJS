@@ -1,3 +1,4 @@
+
 let lastTime = 0;
 let lastDirection = '';
 const speed = 4;
@@ -17,13 +18,36 @@ const beginPosition = {
     direction: 'ArrowRight',
 };
 
-let nextPosition =  {
-   ...beginPosition
+let nextPosition =  {};
+
+const bodySnake = [];
+
+const left = ()=> nextPosition.x -= step;
+const right = ()=> nextPosition.x += step;
+const up = ()=> nextPosition.y -= step;
+const down =  ()=> nextPosition.y += step;
+const pauseCommand = () =>{ pause = !pause};
+
+const commandsDirection = {
+    'ArrowLeft':  left,
+    'ArrowUp':  up  ,
+    'ArrowRight': right,
+    'ArrowDown': down,
 };
 
-let bodySnake = [
-    beginPosition, 
-];
+const commandsAction = {
+    'Space': pauseCommand,
+}
+
+let currentDirection = null;
+
+function initialize( ) {
+    nextPosition = {...beginPosition };
+    currentDirection =  commandsDirection[beginPosition.direction];
+    bodySnake.push(beginPosition);
+;
+    pause = false;
+}
 
 function calcScore(value=10){
     const scoreItem = document.getElementById('score');
@@ -106,19 +130,15 @@ function del(){
 
 function reset(){
     del();
-    nextPosition = {...beginPosition };
-    bodySnake = [
-        beginPosition
-    ];
+    initialize();
     resetScore();
-    pause = false;
 }
 function endGame(){
     const finalScore = document.getElementById('final-score');
     finalScore.textContent = score;  
     const modal = document.getElementById('modal');
     modal.style.display='flex';
-    pause= true;
+    pause = true;
 }
 
 function verifyLimits() {
@@ -155,44 +175,36 @@ function updateSnake(){
     bodySnake[0] = nextPosition;
     
 }
-
+ 
 function updatePosition(){
-    switch(nextPosition.direction){
-        case 'ArrowRight':
-            nextPosition.x += step;
-            break;
-        case 'ArrowDown': 
-            nextPosition.y += step;
-            break;
-        case 'ArrowLeft': 
-            nextPosition.x -= step;
-            break;
-        case 'ArrowUp':
-                nextPosition.y -= step;
-                break;
-    }
-    calcScore();
-    verifyLimits();
+        if(!pause){
+            updateSnake();
+            calcScore();
+            verifyLimits();
+            currentDirection();
+        }
 }
         
-        
 function action(){
+
     document.addEventListener('keyup', e=>{
-        if( e.code === 'ArrowLeft' ||
-            e.code === 'ArrowUp' ||
-            e.code === 'ArrowRight' ||
-            e.code === 'ArrowDown'
-        ){
+
+        const direction = commandsDirection[e.code];
+
+        if( direction ){
             if(e.code === 'ArrowLeft' && nextPosition.direction === 'ArrowRight') return;
             if(e.code === 'ArrowRight' && nextPosition.direction === 'ArrowLeft') return;
             if(e.code === 'ArrowUp' && nextPosition.direction === 'ArrowDown') return;
             if(e.code === 'ArrowDown' && nextPosition.direction === 'ArrowUp') return;
-            if(e.code === 'ArrowLeft' && lastDirection === 'ArrowRight') return;
-            if(e.code === 'ArrowRight' && lastDirection === 'ArrowLeft') return;
-            if(e.code === 'ArrowUp' && lastDirection === 'ArrowDown') return;
-            if(e.code === 'ArrowDown' && lastDirection === 'ArrowUp') return;
-
+            currentDirection = direction;
             nextPosition.direction = e.code;
+        } else {
+
+            const commandAction = commandsAction[e.code];
+
+            if(commandsAction){
+                commandAction();
+            }
         }
     });     
 }
@@ -220,13 +232,14 @@ function main (currentTime){
     window.requestAnimationFrame(main);
     const second = (currentTime - lastTime)/1000;
     if(second < 1/speed) return;
-    !pause && updateSnake();
-    !pause && updatePosition();
+   
+    updatePosition();
     eatFoodBySnake();
     del();
     draw();
     lastTime=currentTime;
 }
+initialize();
 configure();
 action();
 eventClick();
