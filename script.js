@@ -5,28 +5,32 @@ const speed = 4;
 let score = 0;
 let pause = false;
 let food = null;
-const step = 20;
+const step = 22; //segments's length 
 const X = 30;
 const Y = 20;
 const minX = 0;
 const maxX = X*step;
 const minY = 0;
 const maxY = Y*step;
+
 const beginPosition = {
     x: 0,
     y: 0,
     direction: 'ArrowRight',
 };
 
+let upSpeed = false;
 let nextPosition =  {};
 
-const bodySnake = [];
+let bodySnake = [];
 
 const left = ()=> nextPosition.x -= step;
 const right = ()=> nextPosition.x += step;
 const up = ()=> nextPosition.y -= step;
 const down =  ()=> nextPosition.y += step;
-const pauseCommand = () =>{ pause = !pause};
+const pauseCommand = () =>{ pause = !pause };
+
+let currentDirection = null;
 
 const commandsDirection = {
     'ArrowLeft':  left,
@@ -35,17 +39,60 @@ const commandsDirection = {
     'ArrowDown': down,
 };
 
-const commandsAction = {
+
+const commandsKeyUp = {
     'Space': pauseCommand,
+    'KeyM': ()=> { 
+        !menu.lastChild.style.display 
+                            ? changeDisplayMenu('flex')
+                            : changeDisplayMenu('none')
+     },
+     'KeyR': reset,
+     'KeyV': ()=> upSpeed = false,
+
 }
 
-let currentDirection = null;
+const commandsKeyDown = {
+    'KeyV': ()=> upSpeed = true,
+}
+
+const optionsMenu = {
+    'pause': () => { pause = true; } ,
+    'start': () => { pause = false ; },
+    'buttonJogarDeNovo': ()=> {
+        const modal = document.getElementById('modal');
+        modal.style.display = 'none';
+        reset();
+    },
+    reset,
+}
+function changeDisplayMenu( mode='' ) {
+    const menu = document.getElementById('options-menu');
+    menu.style.display = mode;
+}
+
+function eventClick(){
+    document.addEventListener('click',(e)=>{
+        const { id } = e.target;
+        const option = optionsMenu[id];
+        if(option){
+            option();
+        }
+       
+        if(e.target.id === 'title' ){
+           changeDisplayMenu('flex');
+        }else {
+            changeDisplayMenu('none');
+        }
+    });
+}
 
 function initialize( ) {
     nextPosition = {...beginPosition };
     currentDirection =  commandsDirection[beginPosition.direction];
+    bodySnake = [];
+    food = null;
     bodySnake.push(beginPosition);
-;
     pause = false;
 }
 
@@ -59,11 +106,11 @@ function resetScore(){
     score = 0;
 }
 
-function configure(){
+function drawGame(){
     const game = document.getElementById('game');
     game.style.width = maxX+2;
     game.style.height = maxY;
-    game.style.top = `${window.screen.height-window.screen.height+100}px`;
+    game.style.top = `${window.screen.height- window.screen.height+100}px`;
     game.style.left = '25%';
 }
 
@@ -76,7 +123,7 @@ function createFood(){
     if(!food){
         const x = getRandomInt(minX, maxX);
         const y = getRandomInt(minY, maxY);
-        for(let i=0; i< bodySnake.length;i++){
+        for(let i=0; i< bodySnake.length; i++){
             if(bodySnake[i].x === x && bodySnake[i].y === y){
                 return;
             }
@@ -85,7 +132,7 @@ function createFood(){
     }
 }
 
-function draw() {
+function drawSnake() {
     const game = document.getElementById('game');
     bodySnake.forEach((piece,i)=>{
         const img = document.createElement('img');
@@ -95,7 +142,11 @@ function draw() {
         img.style.top = piece.y;
         game.appendChild(img);
     });
+}
+
+function drawFood() {
     if(!food){
+        const game = document.getElementById('game');
         createFood();
         const foodImg = document.createElement('img');
         foodImg.setAttribute('src','square.png');
@@ -104,6 +155,10 @@ function draw() {
         foodImg.style.top = food.y;
         game.appendChild(foodImg);
     }
+}
+function removeFoodDraw () {
+    const foodImg = document.getElementById('food');
+    foodImg.remove();
 }
 
 function eatFoodBySnake(){
@@ -114,9 +169,7 @@ function eatFoodBySnake(){
             ...bodySnake[bodySnake.length-1],
         }
         bodySnake.push(segment);
-        const game = document.getElementById('game');
-        const foodImg = document.getElementById('food');
-        foodImg.remove();
+        removeFoodDraw();
         calcScore(100);
     }
 }
@@ -131,14 +184,16 @@ function del(){
 function reset(){
     del();
     initialize();
+    removeFoodDraw();
     resetScore();
 }
+
 function endGame(){
     const finalScore = document.getElementById('final-score');
     finalScore.textContent = score;  
     const modal = document.getElementById('modal');
     modal.style.display='flex';
-    pause = true;
+    pause = true
 }
 
 function verifyLimits() {
@@ -177,20 +232,19 @@ function updateSnake(){
 }
  
 function updatePosition(){
+        verifyLimits();
         if(!pause){
             updateSnake();
             calcScore();
-            verifyLimits();
             currentDirection();
         }
 }
         
 function action(){
 
-    document.addEventListener('keyup', e=>{
-
+    document.addEventListener('keyup', e => {
+  
         const direction = commandsDirection[e.code];
-
         if( direction ){
             if(e.code === 'ArrowLeft' && nextPosition.direction === 'ArrowRight') return;
             if(e.code === 'ArrowRight' && nextPosition.direction === 'ArrowLeft') return;
@@ -199,48 +253,40 @@ function action(){
             currentDirection = direction;
             nextPosition.direction = e.code;
         } else {
-
-            const commandAction = commandsAction[e.code];
-
-            if(commandsAction){
-                commandAction();
+            const command = commandsKeyUp[e.code];
+            if(command){
+                command();
             }
         }
-    });     
-}
-function eventClick(){
-    document.addEventListener('click',(e)=>{
-        if(e.target.id === 'reset') reset();
-        else if(e.target.id === 'pause') pause=true;
-        else if(e.target.id === 'start') pause=false;
-        else if(e.target.id === 'button') {
-            reset();
-            const modal = document.getElementById('modal');
-            modal.style.display = 'none';
-            pause = false;
-        }
-        const menu = document.getElementById('menu');
-        if(e.target.id === 'title' && !menu.lastChild.style.display){
-            menu.lastChild.style.display = 'flex';
-        }else {
-            menu.lastChild.style.display = '';
-        }
     });
+    document.addEventListener('keydown', e => {
+        const command = commandsKeyDown[e.code];
+        if(command){
+            command();
+        }
+    })    
 }
+
 
 function main (currentTime){
     window.requestAnimationFrame(main);
     const second = (currentTime - lastTime)/1000;
-    if(second < 1/speed) return;
+    let currentSpeed = speed;
+    if(upSpeed){
+        currentSpeed = speed * 3;
+    }
+    
+    if(second < 1/currentSpeed) return;
    
     updatePosition();
     eatFoodBySnake();
     del();
-    draw();
+    drawSnake();
+    drawFood();
     lastTime=currentTime;
 }
 initialize();
-configure();
+drawGame();
 action();
 eventClick();
 window.requestAnimationFrame(main);
